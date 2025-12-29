@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Luminas Archive</title>
+    <!-- CSS & Fonts -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- React & Babel Standalone for JSX -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+      body {
+        font-family: 'Noto Sans KR', sans-serif;
+        margin: 0;
+        overflow-x: hidden;
+      }
+      .font-mono {
+        font-family: 'JetBrains Mono', monospace;
+      }
+      .glitch-text {
+        color: #ef4444;
+        text-shadow: 2px 0 #fff, -2px 0 #000;
+        animation: glitch 1s infinite linear alternate-reverse;
+      }
+      @keyframes glitch {
+        0% { text-shadow: 2px 0 #ff0000; }
+        100% { text-shadow: -2px 0 #00ff00; }
+      }
+      .terminal-cursor::after {
+        content: '_';
+        animation: blink 1s step-end infinite;
+      }
+      @keyframes blink {
+        from, to { color: transparent; }
+        50% { color: #10b981; }
+      }
+      @keyframes scanline {
+        0% { transform: translateY(-100%); }
+        100% { transform: translateY(100%); }
+      }
+      .scanline {
+        width: 100%;
+        height: 100px;
+        background: linear-gradient(0deg, rgba(0,0,0,0) 0%, rgba(16, 185, 129, 0.1) 50%, rgba(0,0,0,0) 100%);
+        opacity: 0.1;
+        position: absolute;
+        bottom: 100%;
+        animation: scanline 8s linear infinite;
+        pointer-events: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+      const { useState, useEffect } = React;
+
+      // Data
+      const LUMINAS_MEMBERS = [
+        { name: '김하린', color: 'text-red-500', rank: 'S급', role: '루미나즈 리더', power: '에너지 지배', resolve: "어떤 대가를 치르더라도 끝까지 할겁니다." },
+        { name: '정다혜', color: 'text-yellow-500', rank: 'A급', power: '염력', resolve: "힘은 사람을 위해 쓰일 때 비로소 가치를 가집니다." },
+        { name: '이유나', color: 'text-blue-500', rank: 'B급', power: '보호막', resolve: "내 방패가 무너지기 전까진 누구도 다치게 두지 않아요." },
+        { name: '김다은', color: 'text-green-500', rank: 'A급', power: '순간이동', resolve: "위험이 닥치기 전, 제가 먼저 그곳에 가 있겠습니다." },
+        { name: '최도윤', color: 'text-slate-400', rank: 'C급', power: '치유•재생', resolve: "몸의 상처도, 마음의 흉터도 제가 전부 고쳐줄게요." },
+        { name: '박시온', color: 'text-slate-900', rank: 'B급', power: '중력 조작', resolve: "세상의 균형은 때로 강한 억지력에 의해 유지됩니다." },
+        { name: '한서진', color: 'text-pink-500', rank: 'C급', power: '봉인', resolve: "악은 결코 세상 밖으로 다시 나오지 못할 것입니다." },
+        { name: '윤태혁', color: 'text-amber-800', rank: 'C급', power: '속도 강화', resolve: "절망이 따라오지 못할 속도로 앞서 나가겠습니다." },
+        { name: '이채린', color: 'text-purple-600', rank: 'D급', power: '게이트 조작', resolve: "모든 게이트를 막아 여러분들을 지키겠습니다." },
+      ];
+
+      const SECRET_TIMELINE = [
+        { date: '2023년 3월', desc: '루미나즈 지원금이 너무 많이 들어 예산안 회의 필요.' },
+        { date: '2023년 7월', desc: '지원금이 전면 폐지 및 지원 중단.' },
+        { date: '2024년 8월', desc: '공식적인 루미나즈 그룹 해체 결정, 맴버들의 거부로 지연 발생.' },
+        { date: '2024년 3월', desc: '루미나즈 그룹 공식 해체, 맴버들 전체 탈주, 비상 사태 선포.' },
+        { date: '2024년 8월', desc: '루미나즈 제압 실패, 군대 전멸, 모두 기절한것으로 확인.' },
+        { date: '2025년 6월', desc: '루미나즈 명칭을 OBJECT로 변경, 인간 자격 박탈.' },
+        { date: '2025년 11월', desc: '사이트 폐쇄 및 1급 비밀 문서 ', corrupted: '삭ȡㅈ롡요ȡ청' },
+      ];
+
+      // Components
+      const PublicView = ({ onAdminClick }) => (
+        <div className="bg-[#e3f2fd] min-h-screen flex flex-col">
+          <div className="bg-rose-500 text-white py-2 px-4 text-center font-bold sticky top-0 z-50 shadow-md text-sm">
+            현재 이 사이트는 운영이 중단되었습니다.
+          </div>
+          
+          <main className="flex-grow container mx-auto px-4 py-16 max-w-4xl">
+            <header className="text-center mb-16">
+              <h1 className="text-6xl font-black text-blue-900 mb-4 tracking-tighter">Luminas</h1>
+              <p className="text-blue-600 text-xl font-medium">여러분들을 지키는 우리들의 희망, 루미나즈를 소개합니다.</p>
+            </header>
+
+            <div className="bg-white/80 backdrop-blur-md rounded-[2.5rem] p-10 shadow-2xl shadow-blue-900/10 border border-white">
+              <h2 className="text-2xl font-bold text-slate-800 mb-10 pb-4 border-b-2 border-blue-50 flex items-center gap-3">
+                <span className="w-3 h-3 bg-blue-400 rounded-full animate-pulse"></span>
+                초능력자 소개
+              </h2>
+              
+              <div className="space-y-12">
+                {LUMINAS_MEMBERS.map((m, i) => (
+                  <div key={i} className="group border-l-4 border-blue-100 pl-8 hover:border-blue-400 transition-all duration-300">
+                    <div className="flex flex-wrap items-center gap-3 mb-3">
+                      <span className={`text-3xl font-black ${m.color}`}>{m.name}</span>
+                      <span className="bg-blue-50 text-blue-700 text-xs px-3 py-1 rounded-full font-bold uppercase tracking-wider">
+                        {m.rank}
+                      </span>
+                      {m.role && (
+                        <span className="text-sm font-semibold text-slate-400">| {m.role}</span>
+                      )}
+                    </div>
+                    <div className="space-y-2">
+                      <p className="text-slate-700 leading-relaxed font-medium">
+                        능력: <span className="text-blue-900 font-bold">{m.power}</span>
+                      </p>
+                      <div className="relative mt-4 bg-blue-50/30 p-4 rounded-2xl italic text-blue-800 font-medium">
+                        "{m.resolve}"
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            <section className="mt-16 text-center text-blue-800/40 text-xs font-bold uppercase tracking-widest py-8 border-t border-blue-100">
+              Luminas LH &copy; 2023-2025. This project is officially defunct.
+            </section>
+          </main>
+
+          <footer className="p-12 flex justify-center items-center bg-white/30 border-t border-blue-100">
+            <button 
+              onClick={onAdminClick}
+              className="px-12 py-4 border-2 border-blue-200 text-blue-500 hover:bg-slate-900 hover:text-white hover:border-slate-900 transition-all duration-700 rounded-2xl text-xs font-black tracking-[0.3em] shadow-lg shadow-blue-900/5"
+            >
+              ADMIN ACCESS
+            </button>
+          </footer>
+        </div>
+      );
+
+      const SecretView = () => (
+        <div className="bg-zinc-950 min-h-screen text-emerald-500 font-mono p-6 md:p-16 relative overflow-hidden">
+          <div className="scanline"></div>
+          <div className="absolute inset-0 pointer-events-none opacity-20 bg-[radial-gradient(circle_at_50%_50%,rgba(16,185,129,0.1)_0%,transparent_100%)]"></div>
+          
+          <div className="max-w-4xl mx-auto relative z-10">
+            <header className="border-b-2 border-emerald-900/50 pb-8 mb-12 flex flex-col md:flex-row justify-between items-baseline gap-4">
+              <div>
+                <h1 className="text-4xl font-black tracking-tighter mb-2 text-white">DECOMPRESSED DATA: <span className="text-emerald-500">SECRET_DOC_L1</span></h1>
+                <div className="inline-block bg-emerald-900/30 text-emerald-500 text-[10px] px-2 py-1 border border-emerald-500/30 animate-pulse">
+                  AUTHENTICATED: [ADMIN_OBJECT]
+                </div>
+              </div>
+              <div className="text-xs text-emerald-800 text-right uppercase">
+                Date: 2025-11-24 <br/>
+                Encryption: RSA-4096 / AES-256
+              </div>
+            </header>
+
+            <section className="space-y-16">
+              <div className="bg-emerald-950/20 border border-emerald-900/50 p-6 rounded-lg">
+                <h2 className="text-xl font-bold mb-8 text-white flex items-center gap-3">
+                  <span className="w-3 h-3 bg-red-600 rounded-full animate-ping"></span>
+                  LUMINAS PROJECT - INCIDENT LOGS
+                </h2>
+
+                <div className="space-y-8 relative">
+                  <div className="absolute left-[7px] top-2 bottom-2 w-px bg-emerald-900/50"></div>
+                  {SECRET_TIMELINE.map((item, i) => (
+                    <div key={i} className="relative pl-10">
+                      <div className="absolute left-0 top-1.5 w-[15px] h-[15px] border border-emerald-500 bg-black rounded-sm flex items-center justify-center">
+                        <div className="w-1 h-1 bg-emerald-500"></div>
+                      </div>
+                      <div className="text-xs font-bold text-emerald-700 mb-1">{item.date}</div>
+                      <div className="text-lg leading-relaxed text-emerald-100">
+                        {item.desc}
+                        {item.corrupted && <span className="glitch-text ml-1">{item.corrupted}</span>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="p-8 border border-red-900/30 bg-red-950/5 rounded-lg">
+                <h3 className="text-red-500 font-bold mb-4 uppercase tracking-widest text-sm">System Alert: Entity Recognition</h3>
+                <p className="text-slate-400 text-sm leading-relaxed mb-6">
+                  Member data has been permanently erased from active service records. 
+                  Subject status transitioned to <span className="text-white font-bold">[OBJECT]</span>. 
+                  Civil rights revoked as of June 2025 protocol.
+                </p>
+                <div className="bg-black/80 p-6 font-mono text-[11px] text-emerald-900/70 overflow-x-auto border border-emerald-900/20">
+{`CMD >> DATA_WIPE --FORCE
+SYSTEM_PROCESS_#A99: REMOVING_MEMBER_BIOMETRICS...
+DONE.
+SYSTEM_PROCESS_#A100: ARCHIVING_CRITICAL_INCIDENTS...
+DONE.
+> ALL PUBLIC HEADERS REMOVED.
+> SECURITY OVERRIDE ACTIVE.`}
+                </div>
+              </div>
+            </section>
+
+            <footer className="mt-20 pt-10 border-t border-emerald-900/30 flex justify-between text-[10px] text-emerald-900 uppercase font-bold tracking-[0.4em]">
+              <span>Protocol: 119-A</span>
+              <span>Classified Document</span>
+            </footer>
+          </div>
+        </div>
+      );
+
+      const LoginModal = ({ onClose, onSuccess }) => {
+        const [username, setUsername] = useState('');
+        const [password, setPassword] = useState('');
+        const [error, setError] = useState('');
+
+        const handleSubmit = (e) => {
+          e.preventDefault();
+          if (username === 'ABANDONED_HERO' && password === 'OBJECT') {
+            onSuccess();
+          } else {
+            setError('Access Denied. Verification failed.');
+          }
+        };
+
+        return (
+          <div className="fixed inset-0 bg-slate-950/90 backdrop-blur-xl flex items-center justify-center z-[100] p-4">
+            <div className="bg-zinc-900 border border-emerald-900/30 w-full max-w-md rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden">
+              <div className="p-6 border-b border-emerald-900/30 flex justify-between items-center bg-black/40">
+                <h2 className="text-emerald-500 font-mono font-bold tracking-widest">관리자 보안 접속</h2>
+                <button onClick={onClose} className="text-emerald-900 hover:text-emerald-500 transition-colors">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <form onSubmit={handleSubmit} className="p-10 space-y-8">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-emerald-800 uppercase tracking-[0.3em]">ID</label>
+                  <input 
+                    autoFocus
+                    type="text" 
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    className="w-full bg-black border border-emerald-900/50 rounded-lg py-4 px-5 text-emerald-500 font-mono focus:outline-none focus:border-emerald-500 transition-all shadow-inner"
+                    placeholder="ENTER_IDENTITY"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-emerald-800 uppercase tracking-[0.3em]">Passcode</label>
+                  <input 
+                    type="password" 
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full bg-black border border-emerald-900/50 rounded-lg py-4 px-5 text-emerald-500 font-mono focus:outline-none focus:border-emerald-500 transition-all shadow-inner"
+                    placeholder="ENTER_SECRET"
+                  />
+                </div>
+                {error && <p className="text-rose-600 text-xs font-bold text-center animate-pulse">{error}</p>}
+                <button 
+                  type="submit"
+                  className="w-full bg-emerald-600 text-black font-black py-4 rounded-lg hover:bg-emerald-400 transition-all transform active:scale-95 shadow-[0_0_20px_rgba(16,185,129,0.2)]"
+                >
+                  AUTHORIZE_SESSION
+                </button>
+              </form>
+            </div>
+          </div>
+        );
+      };
+
+      const App = () => {
+        const [view, setView] = useState('PUBLIC');
+        const [isLoginOpen, setIsLoginOpen] = useState(false);
+        const [status, setStatus] = useState('');
+
+        const handleSuccess = () => {
+          setIsLoginOpen(false);
+          setStatus('DECOMPRESSING_ENCRYPTED_DATA');
+          setTimeout(() => {
+            setView('SECRET');
+            setStatus('');
+            window.scrollTo(0, 0);
+          }, 3000);
+        };
+
+        if (status) {
+          return (
+            <div className="fixed inset-0 bg-black flex flex-col items-center justify-center text-emerald-500 font-mono z-[200]">
+              <div className="text-2xl mb-8 terminal-cursor font-bold tracking-widest">{status}</div>
+              <div className="w-80 h-1 bg-emerald-950 rounded-full overflow-hidden mb-8">
+                <div className="h-full bg-emerald-500 w-0 animate-[fill_3s_linear_forwards]"></div>
+              </div>
+              <div className="grid gap-2 text-[10px] text-emerald-900 uppercase tracking-widest text-center opacity-50">
+                <div className="animate-pulse">Bypassing security filters...</div>
+                <div className="animate-pulse delay-75">Accessing hidden block 0xFC3...</div>
+                <div className="animate-pulse delay-150">Reconstructing classified timeline...</div>
+              </div>
+              <style>{`@keyframes fill { from { width: 0%; } to { width: 100%; } }`}</style>
+            </div>
+          );
+        }
+
+        return (
+          <div className="min-h-screen">
+            {view === 'PUBLIC' ? (
+              <PublicView onAdminClick={() => setIsLoginOpen(true)} />
+            ) : (
+              <SecretView />
+            )}
+            {isLoginOpen && <LoginModal onClose={() => setIsLoginOpen(false)} onSuccess={handleSuccess} />}
+          </div>
+        );
+      };
+
+      const root = ReactDOM.createRoot(document.getElementById('root'));
+      root.render(<App />);
+    </script>
+  </body>
+</html>
